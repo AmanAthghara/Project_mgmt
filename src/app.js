@@ -7,7 +7,7 @@ const { requestLogger, errorHandler, notFound } = require('./middlewares');
 const logger                    = require('./utils/logger');
 
 const app = express();
-
+app.set('trust proxy', 1);
 // ── CORS ──────────────────────────────────────────────────────
 // In development allow the frontend dev server; in production
 // set CORS_ORIGIN to your deployed frontend URL.
@@ -40,6 +40,7 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(requestLogger);
 
 // ── Global rate limiter ───────────────────────────────────────
+
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,   // 15 minutes
   max: 200,
