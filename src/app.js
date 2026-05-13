@@ -1,6 +1,6 @@
 const express      = require('express');
 const cors         = require('cors');
-const rateLimit    = require('express-rate-limit');
+// const rateLimit    = require('express-rate-limit');
 
 const routes                    = require('./routes');
 const { requestLogger, errorHandler, notFound } = require('./middlewares');
@@ -11,23 +11,23 @@ app.set('trust proxy', 1);
 // ── CORS ──────────────────────────────────────────────────────
 // In development allow the frontend dev server; in production
 // set CORS_ORIGIN to your deployed frontend URL.
-const corsOptions = {
-  origin: (origin, callback) => {
-    const allowed = (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(o => o.trim());
-    // allow requests with no origin (Postman, curl, mobile apps)
-    if (!origin || allowed.includes(origin)) {
-      callback(null, true);
-    } else {
-      logger.warn('CORS', `Blocked request from origin: ${origin}`);
-      callback(new Error(`CORS: origin ${origin} not allowed`));
-    }
-  },
-  methods:           ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders:    ['Content-Type', 'Authorization'],
-  exposedHeaders:    ['X-Total-Count'],
-  credentials:       true,
-  optionsSuccessStatus: 200,
-};
+// const corsOptions = {
+//   origin: (origin, callback) => {
+//     const allowed = (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(o => o.trim());
+//     // allow requests with no origin (Postman, curl, mobile apps)
+//     if (!origin || allowed.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       logger.warn('CORS', `Blocked request from origin: ${origin}`);
+//       callback(new Error(`CORS: origin ${origin} not allowed`));
+//     }
+//   },
+//   methods:           ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+//   allowedHeaders:    ['Content-Type', 'Authorization'],
+//   exposedHeaders:    ['X-Total-Count'],
+//   credentials:       true,
+//   optionsSuccessStatus: 200,
+// };
 
 // app.use(cors(corsOptions));
 app.use(cors());
@@ -69,8 +69,8 @@ app.use(requestLogger);
 //   },
 // });
 
-app.use('/api',            globalLimiter);
-app.use('/api/auth',       authLimiter);
+// app.use('/api',            globalLimiter);
+// app.use('/api/auth',       authLimiter);
 
 // ── API routes ────────────────────────────────────────────────
 app.use('/api', routes);
