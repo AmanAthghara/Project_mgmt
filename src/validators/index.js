@@ -102,7 +102,7 @@ const idParam = (name = 'id') => [
 
 // ── Search ────────────────────────────────────────────────────
 const searchQueryRules = [
-  query('q').optional().trim().isLength({ min: 1, max: 100 }),
+  query('q').optional({ nullable: true }).trim().isLength({ max: 100 }),
   query('page').optional().isInt({ min: 1 }),
   query('limit').optional().isInt({ min: 1, max: 100 }),
 ];

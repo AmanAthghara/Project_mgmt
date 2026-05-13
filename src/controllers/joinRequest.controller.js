@@ -82,11 +82,29 @@ const cancelRequest = async (req, res, next) => {
   }
 };
 
+// PUT /api/join-requests/:requestId/respond  [invited user]
+const respondToInvite = async (req, res, next) => {
+  const { requestId } = req.params;
+  const { action } = req.body;
+  console.log(`[CTRL:JOIN] respondToInvite requestId=${requestId} action=${action} userId=${req.user.id}`);
+  try {
+    if (!['accepted', 'rejected'].includes(action)) {
+      return sendError(res, 'action must be "accepted" or "rejected"', 400);
+    }
+    const result = await joinRequestService.resolveOwnInvite(requestId, req.user.id, action);
+    return sendSuccess(res, result.message, { project_id: result.project_id });
+  } catch (err) {
+    if (err.statusCode) return sendError(res, err.message, err.statusCode);
+    next(err);
+  }
+};
+
 module.exports = {
   adminInvite,
   requestJoin,
   getPendingRequests,
   resolveRequest,
+  respondToInvite,
   getMyRequests,
   cancelRequest,
 };

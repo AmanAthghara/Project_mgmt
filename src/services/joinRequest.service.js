@@ -186,6 +186,57 @@ const getMyRequests = async (userId) => {
   return rows;
 };
 
+
+
+// ══════════════════════════════════════════════════════════════
+//  INVITED USER ACCEPTS OR REJECTS THEIR OWN ADMIN INVITE
+// ══════════════════════════════════════════════════════════════
+const resolveOwnInvite = async (requestId, userId, action) => {
+  if (!['accepted', 'rejected'].includes(action)) {
+    throw Object.assign(new Error('action must be "accepted" or "rejected"'), { statusCode: 400 });
+  }
+
+  logger.info('JOIN_SVC', `User ${userId} resolving own invite ${requestId} → ${action}`);
+
+  const { rows } = await query(
+    `SELECT * FROM join_requests
+     WHERE id = $1 AND requester_id = $2 AND type = 'admin_invite' AND status = 'pending'`,
+    [requestId, userId]
+  );
+
+  if (!rows.length) {
+    throw Object.assign(new Error('Invite not found or already resolved'), { statusCode: 404 });
+  }
+
+  const request = rows[0];
+  const client = await getClient();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `UPDATE join_requests SET status = $1, resolved_at = NOW() WHERE id = $2`,
+      [action, requestId]
+    );
+    if (action === 'accepted') {
+      await client.query(
+        `INSERT INTO project_members (project_id, user_id, role)
+         VALUES ($1, $2, 'member')
+         ON CONFLICT (project_id, user_id) DO NOTHING`,
+        [request.project_id, userId]
+      );
+      logger.success('JOIN_SVC', `User ${userId} accepted invite and joined project ${request.project_id}`);
+    }
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+
+  return { message: `Invite ${action}`, project_id: request.project_id };
+};
+
+
 // ══════════════════════════════════════════════════════════════
 //  CANCEL A REQUEST  (by the requester themselves)
 // ══════════════════════════════════════════════════════════════
@@ -210,6 +261,7 @@ module.exports = {
   memberRequestJoin,
   getPendingRequests,
   resolveRequest,
+  resolveOwnInvite,
   getMyRequests,
   cancelRequest,
 };
