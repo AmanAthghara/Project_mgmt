@@ -31,7 +31,7 @@ app.set('trust proxy', 1);
 
 // app.use(cors(corsOptions));
 app.use(cors());
-app.options('*', cors());
+// app.options('*', cors());
 
 // app.options('/*splat', cors(corsOptions));
 
